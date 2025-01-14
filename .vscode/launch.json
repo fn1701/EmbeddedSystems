@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/main.elf",
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb",
+            "miDebuggerPath": "arm-none-eabi-gdb",
+            "miDebuggerServerAddress": "localhost:3333",
+            "preLaunchTask": "build",
+            "internalConsoleOptions": "neverOpen",
+            "postRemoteConnectCommands": [
+                {
+                    "text": "monitor reset init"
+                },
+                {
+                    "text": "load"
+                }
+            ],
+            "svdPath": "${workspaceFolder}/pico-sdk/src/rp2040/hardware_regs/RP2040.svd"
+        }
+    ],
+}

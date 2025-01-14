@@ -1,0 +1,40 @@
+{
+    "task.quickOpen.skip": true,
+    "task.autoDetect": "off",
+    "workbench.editor.editorActionsLocation": "hidden",
+    "cmake.options.advanced": {
+        "build": {
+            "statusBarVisibility": "inherit",
+            "inheritDefault": "hidden"
+        },
+        "launch": {
+            "statusBarVisibility": "inherit",
+            "inheritDefault": "hidden"
+        },
+        "debug": {
+            "statusBarVisibility": "inherit",
+            "inheritDefault": "hidden"
+        }
+    },
+    "cmake.debugConfig": {
+        "miDebuggerPath": "arm-none-eabi-gdb",
+        "setupCommands": [
+            {
+                "text": "target extended-remote :3333"
+            },
+            {
+                "text": "load ${command:cmake.launchTargetPath}"
+            }
+        ]
+    },
+    "files.exclude": {
+        "**/.*": true
+    },
+    "files.associations": {
+        "*.hpp": "cpp",
+        "*.cpp": "cpp",
+        "*.h": "c",
+        "*.c": "c"
+    },
+    "task.allowAutomaticTasks": "on"
+}
