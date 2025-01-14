@@ -128,6 +128,9 @@ int main()
     echoOutputPWM();
 
     volatile uint previousProgress = 1;
+    // for(volatile uint i=0;i<1000000;i++){
+    //     gpio_pull_down(21);
+    // }
     while (true)
     {
         uint32_t durationAvg = (duration[0] + duration[1]+ duration[2])/3;
@@ -143,6 +146,40 @@ int main()
             setDisplay(progress);
             previousProgress = progress;
         }
+
+    gpio_init(19);
+    gpio_set_dir(19, GPIO_OUT);
+    gpio_set_function(19, GPIO_FUNC_PWM);
+    uint slice_num = pwm_gpio_to_slice_num(19); // Find out which PWM slice is connected to GPIO 27 (it's slice 0)
+    pwm_set_clkdiv(slice_num, 125);
+    pwm_set_wrap(slice_num, 10000);
+    pwm_set_chan_level(slice_num, PWM_CHAN_B, 1500); //Losfahren 1880/10000
+    pwm_set_enabled(slice_num, true);
+
+    // gpio_init(20);
+    // gpio_set_dir(20, GPIO_OUT);
+    // gpio_set_function(20, GPIO_FUNC_PWM);
+    // uint slice_num1 = pwm_gpio_to_slice_num(20); // Find out which PWM slice is connected to GPIO 27 (it's slice 0)
+    // pwm_set_wrap(slice_num1, 10000);
+    // pwm_set_chan_level(slice_num1, PWM_CHAN_A, 10000);
+    // pwm_set_enabled(slice_num1, true);
+
+    // gpio_init(21);
+    // gpio_set_dir(21, GPIO_OUT);
+    // gpio_set_function(21, GPIO_FUNC_PWM);
+    // uint slice_num2 = pwm_gpio_to_slice_num(20); // Find out which PWM slice is connected to GPIO 27 (it's slice 0)
+    // pwm_set_wrap(slice_num2, 10000);
+    // pwm_set_chan_level(slice_num2, PWM_CHAN_B, 0);
+    // pwm_set_enabled(slice_num2, true);
+
+    // gpio_set_function(20, GPIO_FUNC_I2C); // A2
+    // gpio_set_function(21, GPIO_FUNC_I2C);
+    gpio_pull_down(20);//Vorwärts
+    gpio_pull_up(21);//Rückwärts
     }
+
+    
+
+
     return 0;
 }
