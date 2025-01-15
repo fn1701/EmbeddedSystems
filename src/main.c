@@ -62,9 +62,12 @@ void setupEchoTriggerPWM()
 void setDisplay(volatile uint progress)
 {
     uint displayedProgress;
-    if(progress>200){
+    if (progress > 200)
+    {
         displayedProgress = 200;
-    }else{
+    }
+    else
+    {
         displayedProgress = progress;
     }
 
@@ -109,13 +112,15 @@ void setDisplay(volatile uint progress)
 }
 
 volatile uint32_t duration[3] = {0, 0, 0};
+volatile uint32_t durationNow = 0;
 uint8_t durationIndex = 0;
 void gpio_callback(uint gpio, uint32_t events)
 {
     if (events & GPIO_IRQ_EDGE_FALL)
     {
         uint slice_num = pwm_gpio_to_slice_num(27); // Find out which PWM slice is connected to GPIO 27 (it's slice 0)
-        duration[durationIndex] = pwm_get_counter(slice_num);
+        durationNow = pwm_get_counter(slice_num);
+        duration[durationIndex] = durationNow;
         durationIndex = (durationIndex + 1) % 3;
         pwm_set_counter(slice_num, 0);
     }
@@ -147,6 +152,36 @@ void initMotor()
         ;
 }
 
+void setMotorSpeed(uint progress, uint progressNow)
+{
+    gpio_set_dir(19, GPIO_OUT);
+    uint slice_num = pwm_gpio_to_slice_num(19); // Find out which PWM slice is connected to GPIO 27 (it's slice 0)
+
+    if (progressNow < 100)
+    {
+        gpio_pull_down(forwardGPIO); // Vorwärts
+    }
+    if (progress > 103)
+    {
+        gpio_pull_up(forwardGPIO);    // Vorwärts
+        gpio_pull_down(backwardGPIO); // Rückwärts
+        uint speed = (progress - 100) * 4 + 1900;
+        pwm_set_chan_level(slice_num, PWM_CHAN_B, speed); // Losfahren 2000/10000 Fährt nicht < 900
+    }
+    else if (progress <= 97)
+    {
+        gpio_pull_down(forwardGPIO); // Vorwärts
+        gpio_pull_up(backwardGPIO);  // Rückwärts
+        uint speed = (100 - progress) * 9 + 1900;
+        pwm_set_chan_level(slice_num, PWM_CHAN_B, speed); // Losfahren 2000/10000 Fährt nicht < 900
+    }
+    else
+    {
+        gpio_pull_down(forwardGPIO);  // Vorwärts
+        gpio_pull_down(backwardGPIO); // Rückwärts
+    }
+}
+
 int main()
 {
     echoInit();
@@ -156,23 +191,16 @@ int main()
 
     volatile uint previousProgress = 1;
 
-    // gpio_pull_down(20);
-    // gpio_pull_up(21);
-
-    // pwm_set_chan_level(1, PWM_CHAN_B, 2000); //Losfahren 1900/10000
-    // for(volatile uint i=0;i<1000000;i++);
-
     while (true)
     {
         uint32_t durationAvg = (duration[0] + duration[1] + duration[2]) / 3;
         volatile uint32_t distance = (durationAvg * 340 / 2) / 100;
         uint target = 10;                           // cm
         volatile uint progress = distance / target; // A6gpio_init(19);
-        gpio_set_dir(19, GPIO_OUT);
-        gpio_set_function(19, GPIO_FUNC_PWM);
-        uint slice_num = pwm_gpio_to_slice_num(19); // Find out which PWM slice is connected to GPIO 27 (it's slice 0)
-        pwm_set_clkdiv(slice_num, 125);
-        pwm_set_wrap(slice_num, 10000);
+
+        volatile uint32_t distanceNow = (durationNow * 340 / 2) / 100;
+        volatile uint progressNow = distanceNow / target;
+
         if (progress > 1000)
         {
             progress = 1000;
@@ -184,25 +212,7 @@ int main()
             previousProgress = progress;
         }
 
-        if (progress > 101)
-        {
-            gpio_pull_up(forwardGPIO);    // Vorwärts
-            gpio_pull_down(backwardGPIO); // Rückwärts
-            uint speed = (progress-100) * 9 + 1900;
-            pwm_set_chan_level(slice_num, PWM_CHAN_B, speed); // Losfahren 2000/10000 Fährt nicht < 900
-        }
-        else if (progress <= 99)
-        {
-            gpio_pull_down(forwardGPIO);  // Vorwärts
-            gpio_pull_up(backwardGPIO); // Rückwärts
-            uint speed = (100-progress) * 9 + 1900;
-            pwm_set_chan_level(slice_num, PWM_CHAN_B, speed); // Losfahren 2000/10000 Fährt nicht < 900
-        }
-        else
-        {
-            gpio_pull_down(forwardGPIO);  // Vorwärts
-            gpio_pull_down(backwardGPIO); // Rückwärts
-        }
+        setMotorSpeed(progress, progressNow);
     }
 
     return 0;

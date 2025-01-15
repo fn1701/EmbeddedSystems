@@ -9,7 +9,7 @@
             "cwd": "${workspaceFolder}",
             "MIMode": "gdb",
             "miDebuggerPath": "arm-none-eabi-gdb",
-            "miDebuggerServerAddress": "localhost:3333",
+            "miDebuggerServerAddress": "10.42.0.1:3333",
             "preLaunchTask": "build",
             "internalConsoleOptions": "neverOpen",
             "postRemoteConnectCommands": [
